@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 function ChallengeEditor({ challenges, setChallenges }) {
   const [newChallenge, setNewChallenge] = useState("");
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
 
   const addChallenge = () => {
     if (newChallenge.trim() === "") return;

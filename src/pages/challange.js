@@ -13,15 +13,14 @@ export default function Page() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.contentWrapper}>
+      <div style={styles.editorWrapper}>
         <ChallengeEditor
-          style={styles.editor}
           challenges={challenges}
           setChallenges={setChallenges}
         />
-        <div style={styles.wheelContainer}>
-          <ChallengeWheel challenges={challenges} />
-        </div>
+      </div>
+      <div style={styles.wheelWrapper}>
+        <ChallengeWheel challenges={challenges} />
       </div>
     </div>
   );
@@ -29,27 +28,23 @@ export default function Page() {
 
 const styles = {
   container: {
+    position: "relative",
     minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
     background: "#f5f5f5",
   },
-  contentWrapper: {
-    display: "flex",
-    width: "100%",
-    maxWidth: "1200px",
-    gap: "2rem",
-    padding: "0 2rem",
-    alignItems: "center",
+  // L'éditeur est positionné en absolu sur la gauche, centré verticalement
+  editorWrapper: {
+    position: "absolute",
+    top: "50%",
+    left: "2rem",
+    transform: "translateY(-50%)",
+    zIndex: 10,
   },
-  editor: {
-    flex: "0 0 300px",
-  },
-  wheelContainer: {
-    flex: "1",
+  // La roue est dans un conteneur en flex qui occupe toute la hauteur de l'écran, garantissant ainsi un centrage complet
+  wheelWrapper: {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    height: "100vh",
   },
 };
