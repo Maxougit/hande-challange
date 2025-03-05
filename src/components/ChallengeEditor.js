@@ -1,22 +1,27 @@
 import React, { useState } from "react";
 
 function ChallengeEditor({ challenges, setChallenges }) {
-  const [newChallenge, setNewChallenge] = useState("");
+  const [newChallengeText, setNewChallengeText] = useState("");
+  const [newChallengeWeight, setNewChallengeWeight] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
 
   const addChallenge = () => {
-    if (newChallenge.trim() === "") return;
-    setChallenges([...challenges, newChallenge.trim()]);
-    setNewChallenge("");
+    if (newChallengeText.trim() === "") return;
+    setChallenges([
+      ...challenges,
+      { text: newChallengeText.trim(), weight: Number(newChallengeWeight) },
+    ]);
+    setNewChallengeText("");
+    setNewChallengeWeight(1);
   };
 
   const removeChallenge = (indexToRemove) => {
     setChallenges(challenges.filter((_, index) => index !== indexToRemove));
   };
 
-  const updateChallenge = (indexToUpdate, newValue) => {
-    const updatedChallenges = challenges.map((challenge, index) =>
-      index === indexToUpdate ? newValue : challenge
+  const updateChallenge = (index, property, newValue) => {
+    const updatedChallenges = challenges.map((challenge, i) =>
+      i === index ? { ...challenge, [property]: newValue } : challenge
     );
     setChallenges(updatedChallenges);
   };
@@ -27,38 +32,55 @@ function ChallengeEditor({ challenges, setChallenges }) {
         onClick={() => setIsVisible(!isVisible)}
         style={styles.toggleButton}
       >
-        {isVisible ? "Masquer l'éditeur" : "Afficher l'éditeur"}
+        {isVisible ? "Hide Editor" : "Show Editor"}
       </button>
 
       {isVisible && (
         <div style={styles.editorContainer}>
-          <h2>Modifier les challenges</h2>
+          <h2>Edit Challenges</h2>
           {challenges.map((challenge, index) => (
             <div key={index} style={styles.editorRow}>
               <input
                 type="text"
-                value={challenge}
-                onChange={(e) => updateChallenge(index, e.target.value)}
+                value={challenge.text}
+                onChange={(e) => updateChallenge(index, "text", e.target.value)}
                 style={styles.input}
+              />
+              <input
+                type="number"
+                min="1"
+                value={challenge.weight}
+                onChange={(e) =>
+                  updateChallenge(index, "weight", Number(e.target.value))
+                }
+                style={styles.inputWeight}
               />
               <button
                 onClick={() => removeChallenge(index)}
                 style={styles.removeButton}
               >
-                Supprimer
+                Delete
               </button>
             </div>
           ))}
           <div style={styles.editorRow}>
             <input
               type="text"
-              placeholder="Nouveau challenge"
-              value={newChallenge}
-              onChange={(e) => setNewChallenge(e.target.value)}
+              placeholder="New challenge"
+              value={newChallengeText}
+              onChange={(e) => setNewChallengeText(e.target.value)}
               style={styles.input}
             />
+            <input
+              type="number"
+              placeholder="Weight"
+              min="1"
+              value={newChallengeWeight}
+              onChange={(e) => setNewChallengeWeight(Number(e.target.value))}
+              style={styles.inputWeight}
+            />
             <button onClick={addChallenge} style={styles.addButton}>
-              Ajouter
+              Add
             </button>
           </div>
         </div>
@@ -81,7 +103,7 @@ const styles = {
     cursor: "pointer",
   },
   editorContainer: {
-    width: "300px",
+    width: "400px",
     background: "#fff",
     padding: "15px",
     borderRadius: "8px",
@@ -90,12 +112,16 @@ const styles = {
   editorRow: {
     display: "flex",
     alignItems: "center",
+    gap: "10px",
     marginBottom: "10px",
   },
   input: {
     flex: 1,
     padding: "8px",
-    marginRight: "10px",
+  },
+  inputWeight: {
+    width: "50px",
+    padding: "8px",
   },
   removeButton: {
     padding: "8px 12px",

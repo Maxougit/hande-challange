@@ -6,8 +6,15 @@ import ChallengeEditor from "../components/ChallengeEditor";
 
 export default function Page() {
   const defaultChallenges = process.env.NEXT_PUBLIC_DEFAULT_CHALLENGES
-    ? process.env.NEXT_PUBLIC_DEFAULT_CHALLENGES.split(",")
-    : ["Challenge 1", "Challenge 2", "Challenge 3"];
+    ? process.env.NEXT_PUBLIC_DEFAULT_CHALLENGES.split(",").map((ch) => ({
+        text: ch,
+        weight: 1,
+      }))
+    : [
+        { text: "Challenge 1", weight: 1 },
+        { text: "Challenge 2", weight: 1 },
+        { text: "Challenge 3", weight: 1 },
+      ];
 
   const [challenges, setChallenges] = useState(defaultChallenges);
 
@@ -32,7 +39,6 @@ const styles = {
     minHeight: "100vh",
     background: "#f5f5f5",
   },
-  // L'éditeur est positionné en absolu sur la gauche, centré verticalement
   editorWrapper: {
     position: "absolute",
     top: "50%",
@@ -40,7 +46,6 @@ const styles = {
     transform: "translateY(-50%)",
     zIndex: 10,
   },
-  // La roue est dans un conteneur en flex qui occupe toute la hauteur de l'écran, garantissant ainsi un centrage complet
   wheelWrapper: {
     display: "flex",
     justifyContent: "center",

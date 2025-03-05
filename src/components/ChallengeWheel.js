@@ -12,7 +12,6 @@ function ChallengeWheel({ challenges }) {
     setSelectedChallenge(null);
 
     const spins = Math.floor(Math.random() * 8) + 8; // between 8 and 15 full rotations
-    const segmentAngle = 360 / challenges.length;
     const finalAngle = Math.random() * 360;
     const extraSpin = Math.random() * 180;
     const newRotation = spins * 360 + finalAngle + extraSpin;
@@ -22,11 +21,35 @@ function ChallengeWheel({ challenges }) {
     setTimeout(() => {
       const normalizedRotation = newRotationTotal % 360;
       const pointerAngle = (360 - normalizedRotation) % 360;
-      const index = Math.floor(pointerAngle / segmentAngle) % challenges.length;
-      setSelectedChallenge(challenges[index]);
+
+      // Calculate the weighted segments
+      const totalWeight = challenges.reduce(
+        (sum, challenge) => sum + Number(challenge.weight),
+        0
+      );
+      let cumulativeAngle = 0;
+      let chosen = null;
+      for (let i = 0; i < challenges.length; i++) {
+        const segmentAngle = (challenges[i].weight / totalWeight) * 360;
+        if (
+          pointerAngle >= cumulativeAngle &&
+          pointerAngle < cumulativeAngle + segmentAngle
+        ) {
+          chosen = challenges[i].text;
+          break;
+        }
+        cumulativeAngle += segmentAngle;
+      }
+      setSelectedChallenge(chosen);
       setSpinning(false);
     }, 5000);
   };
+
+  // Compute total weight for drawing
+  const totalWeight = challenges.reduce(
+    (sum, challenge) => sum + Number(challenge.weight),
+    0
+  );
 
   return (
     <div style={styles.outerContainer}>
@@ -43,51 +66,56 @@ function ChallengeWheel({ challenges }) {
           >
             <svg width="300" height="300" viewBox="0 0 300 300">
               <g transform="translate(150,150)">
-                {challenges.map((challenge, index) => {
-                  const segmentAngle = 360 / challenges.length;
-                  const startAngle = index * segmentAngle;
-                  const endAngle = startAngle + segmentAngle;
-                  const largeArcFlag = segmentAngle > 180 ? 1 : 0;
-                  const startRadians = (Math.PI / 180) * startAngle;
-                  const endRadians = (Math.PI / 180) * endAngle;
-                  const x1 = 150 * Math.cos(startRadians);
-                  const y1 = 150 * Math.sin(startRadians);
-                  const x2 = 150 * Math.cos(endRadians);
-                  const y2 = 150 * Math.sin(endRadians);
-                  const pathData = `
-                    M 0 0
-                    L ${x1} ${y1}
-                    A 150 150 0 ${largeArcFlag} 1 ${x2} ${y2}
-                    Z
-                  `;
-                  const hue = index * (360 / challenges.length);
-                  const fillColor = `hsl(${hue}, 70%, 60%)`;
-                  const midAngle = startAngle + segmentAngle / 2;
-                  const midRadians = (Math.PI / 180) * midAngle;
-                  const textX = 75 * Math.cos(midRadians);
-                  const textY = 75 * Math.sin(midRadians);
-                  return (
-                    <g key={index}>
-                      <path
-                        d={pathData}
-                        fill={fillColor}
-                        stroke="#fff"
-                        strokeWidth="2"
-                      />
-                      <text
-                        x={textX}
-                        y={textY}
-                        fill="#fff"
-                        fontSize="12"
-                        fontWeight="bold"
-                        textAnchor="middle"
-                        alignmentBaseline="middle"
-                      >
-                        {challenge}
-                      </text>
-                    </g>
-                  );
-                })}
+                {(() => {
+                  let currentAngle = 0;
+                  return challenges.map((challenge, index) => {
+                    const segmentAngle = (challenge.weight / totalWeight) * 360;
+                    const startAngle = currentAngle;
+                    const endAngle = currentAngle + segmentAngle;
+                    currentAngle += segmentAngle;
+                    const largeArcFlag = segmentAngle > 180 ? 1 : 0;
+                    const startRadians = (Math.PI / 180) * startAngle;
+                    const endRadians = (Math.PI / 180) * endAngle;
+                    const x1 = 150 * Math.cos(startRadians);
+                    const y1 = 150 * Math.sin(startRadians);
+                    const x2 = 150 * Math.cos(endRadians);
+                    const y2 = 150 * Math.sin(endRadians);
+                    const pathData = `
+                      M 0 0
+                      L ${x1} ${y1}
+                      A 150 150 0 ${largeArcFlag} 1 ${x2} ${y2}
+                      Z
+                    `;
+                    const midAngle = startAngle + segmentAngle / 2;
+                    const midRadians = (Math.PI / 180) * midAngle;
+                    const textX = 75 * Math.cos(midRadians);
+                    const textY = 75 * Math.sin(midRadians);
+                    // Utilise une teinte variant selon l'index
+                    const hue = (index / challenges.length) * 360;
+                    const fillColor = `hsl(${hue}, 70%, 60%)`;
+                    return (
+                      <g key={index}>
+                        <path
+                          d={pathData}
+                          fill={fillColor}
+                          stroke="#fff"
+                          strokeWidth="2"
+                        />
+                        <text
+                          x={textX}
+                          y={textY}
+                          fill="#fff"
+                          fontSize="12"
+                          fontWeight="bold"
+                          textAnchor="middle"
+                          alignmentBaseline="middle"
+                        >
+                          {challenge.text}
+                        </text>
+                      </g>
+                    );
+                  });
+                })()}
               </g>
             </svg>
           </div>
@@ -98,12 +126,12 @@ function ChallengeWheel({ challenges }) {
           style={styles.button}
           disabled={spinning || challenges.length === 0}
         >
-          {spinning ? "En cours..." : "Lancer la roue"}
+          {spinning ? "Spinning..." : "Spin the Wheel"}
         </button>
       </div>
       {selectedChallenge && (
         <div style={styles.resultContainer}>
-          <h2>Challenge sélectionné : {selectedChallenge}</h2>
+          <h2>Selected Challenge: {selectedChallenge}</h2>
         </div>
       )}
     </div>
@@ -116,7 +144,6 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    // Fixe la hauteur totale pour éviter le reflow
     height: "400px",
   },
   wheelContainer: {
